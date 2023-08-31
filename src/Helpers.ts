@@ -19,7 +19,7 @@ export const sleep = async (from: TimeSeparated, to?: TimeSeparated): Promise<vo
     const hours = to.hours || 0;
     const msTo = seconds * 1000 + minutes * 60 * 1000 + hours * 60 * 60 * 1000;
     const ms = Math.floor(Math.random() * (msTo - msFrom + 1) + msFrom);
-    console.log(`Sleeping for ${(ms / (1000 * 60)).toFixed(1)} minutes`);
+    console.log(`Sleeping for ${(ms / (1000 * 60)).toFixed(1)} minutes \n`);
     return new Promise(resolve => setTimeout(resolve, ms));
   }
   return new Promise(resolve => setTimeout(resolve, msFrom));
@@ -99,3 +99,8 @@ export const randomBetween = (min: number, max: number, roundTo?: number): numbe
   const random = Math.random() * (max - min) + min;
   return roundTo !== undefined ? Math.round(random * 10 ** roundTo) / 10 ** roundTo : random;
 };
+
+export function roundTo(num: number, digits: number) {
+  const pow = Math.pow(10, digits);
+  return Number((Math.floor(num * pow) / pow).toFixed(5));
+}

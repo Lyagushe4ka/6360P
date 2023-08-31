@@ -2,18 +2,18 @@ import { BigNumber, ethers } from "ethers";
 import { MIN_TOKEN_BALANCE, RPC_URL } from "../DEPENDENCIES";
 import { tokens, domain } from "./Constants";
 import erc20Abi from "./erc20Abi.json";
-import { retry, sendTelegramMessage } from "./Helpers";
+import { retry, roundTo, sendTelegramMessage } from "./Helpers";
 import { SocksProxyAgent } from "socks-proxy-agent";
 import axios from "axios";
 
 
 const provoder = new ethers.providers.JsonRpcProvider(RPC_URL);
 
-export async function findToken(pk: string): Promise<[string, number] | null> {
+export async function findToken(address: string): Promise<[string, number] | null> {
 
   for (const token of Object.values(tokens)) {
     const tokenInstance = new ethers.Contract(token.address, erc20Abi, provoder);
-    const balance = await retry<BigNumber>(() => tokenInstance.balanceOf(pk));
+    const balance = await retry<BigNumber>(() => tokenInstance.balanceOf(address));
     const formattedBalance = ethers.utils.formatUnits(balance, token.decimals);
 
     if (Number(formattedBalance) >= MIN_TOKEN_BALANCE) {
@@ -31,7 +31,9 @@ export async function approveIfNeeded(pk: string, tokenName: string, amount: num
 
   try {
     if (allowance.lt(amountInWei)) {
-      const approve = await retry<ethers.providers.TransactionResponse>(() => tokenInstance.approve(domain.verifyingContract, ethers.constants.MaxUint256));
+      console.log(`Approving ${tokenName} on wallet: ${signer.address}`);
+      const gasPrice = await retry(() => provoder.getGasPrice());
+      const approve = await retry<ethers.providers.TransactionResponse>(() => tokenInstance.approve(domain.verifyingContract, ethers.constants.MaxUint256, { gasPrice: gasPrice.mul(120).div(100) }));
 
       const receipt = await retry(() => approve.wait());
       console.log(`Approved unlimited ${tokenName},  tx hash: ${receipt.transactionHash}`);
@@ -53,7 +55,7 @@ export async function getQuote(address: string, proxy: string, tokenFromName: st
   let quote: any;
   try {
   quote = await retry(() => axios.get(
-    `https://api.bebop.xyz/polygon/v1/quote?buy_tokens=${tokenToName}&sell_tokens=${tokenFromName}&sell_amounts=${amount.toFixed(2)}&taker_address=${address}`,
+    `https://api.bebop.xyz/polygon/v1/quote?buy_tokens=${tokenToName}&sell_tokens=${tokenFromName}&sell_amounts=${roundTo(amount, 2)}&taker_address=${address}`,
     {
       httpAgent: socksProxy,
       httpsAgent: socksProxy,
@@ -64,7 +66,12 @@ export async function getQuote(address: string, proxy: string, tokenFromName: st
     return null;
   }
 
-  return [quote.data.quote_id, quote.data.gasFee.usd, quote.data.toSign];
+  if (quote.data.status !== 'QUOTE_SUCCESS') {
+    console.log(`[QUOTE] Error while getting quote.`);
+    return null;
+  }
+
+  return [quote.data.quoteId, quote.data.gasFee.usd, quote.data.toSign];
 }
 
 export async function executeOrder(signaute: string, quoteId: string, proxy: string): Promise<string | null> {
@@ -73,7 +80,7 @@ export async function executeOrder(signaute: string, quoteId: string, proxy: str
 
   let order: any;
   try {
-    const orderResponse = await retry(() => axios.post(
+    order = await retry(() => axios.post(
       `https://api.bebop.xyz/polygon/v1/order`,
       {
         signature: signaute,
@@ -89,7 +96,7 @@ export async function executeOrder(signaute: string, quoteId: string, proxy: str
     return null;
   }
   if (order.data.status !== 'Success') {
-    console.log(`[ORDER] Error while executing order.`);
+    console.log(`[ORDER] Error while executing order. \n ${JSON.stringify(order.data, null, 2)}}`);
     return null;
   }
   return order.data.txHash;

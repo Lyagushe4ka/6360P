@@ -51,10 +51,14 @@ async function main() {
       continue;
     }
 
-    const token = await findToken(pair.pk);
+    const token = await findToken(wallet.address);
+    console.log(token)
 
     if (!token) {
-      console.log(`No token found for ${wallet.address}`);
+      console.log(`No tokens found for ${wallet.address}, removing from list`);
+      await sendTelegramMessage(`❌ No tokens found for address: ${wallet.address}, removing from list`);
+
+      pairs.splice(pairs.indexOf(pair), 1);
       continue;
     }
 
@@ -71,6 +75,7 @@ async function main() {
       tokenName,
       balance,
     );
+    await sleep({ seconds: 2 });
 
     if (!quote) {
       continue;
