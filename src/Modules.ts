@@ -5,6 +5,7 @@ import erc20Abi from "./erc20Abi.json";
 import { retry, roundTo, sendTelegramMessage } from "./Helpers";
 import { SocksProxyAgent } from "socks-proxy-agent";
 import axios from "axios";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 
 const provoder = new ethers.providers.JsonRpcProvider(RPC_URL);
@@ -49,7 +50,8 @@ export async function approveIfNeeded(pk: string, tokenName: string, amount: num
 
 export async function getQuote(address: string, proxy: string, tokenFromName: string, amount: number): Promise<[string, number, Record<string, any>] | null> {
 
-  const socksProxy = new SocksProxyAgent(`socks://${proxy}`);
+  const socksProxy = new SocksProxyAgent(`socks5://${proxy}`);
+  // const httpProxy = new HttpsProxyAgent(`https://${proxy}`);
   const tokenToName = tokenFromName === 'USDC' ? 'DAI' : 'USDC';
 
   let quote: any;

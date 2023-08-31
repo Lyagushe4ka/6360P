@@ -18,3 +18,5 @@ export const MAX_VOLUME = 10_000;
 export const MAX_TX_SINGLE = 0;
 
 // export const MAX_TX_MULTI = 0;
+
+// export const IS_HTTPS_PROXY = true; // true if you want to use http proxies
