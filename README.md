@@ -4,6 +4,8 @@
 
 ### 3. Create files - keys.txt and proxies.txt and paste one key/proxy on each line.
 
+- Proxy format: login:password@ip:port
+
 ### 4. Check the dependencies in the DEPENDENCIES.ts file:
 
 - If you want to use the script with the Telegram bot, paste your tg dependencies:

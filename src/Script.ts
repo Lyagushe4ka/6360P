@@ -1,8 +1,8 @@
 import { Data, domain, types } from "./Constants";
 import { ethers } from "ethers";
 import fs from 'fs';
-import { retry, sendTelegramMessage, shuffleArray, sleep } from "./Helpers";
-import { MAX_TX_SINGLE, MAX_VOLUME, MAX_VOLUME_NEEDED, MAX_WAIT_TIME, MIN_WAIT_TIME, RPC_URL } from "../DEPENDENCIES";
+import { randomBetween, retry, sendTelegramMessage, shuffleArray, sleep } from "./Helpers";
+import { MAX_AMOUNT_PERCENT, MAX_TX_SINGLE, MAX_VOLUME, MAX_VOLUME_NEEDED, MAX_WAIT_TIME, MIN_AMOUNT_PERCENT, MIN_WAIT_TIME, RND_AMOUNT, RPC_URL } from "../DEPENDENCIES";
 import { approveIfNeeded, executeOrder, findToken, getQuote } from "./Modules";
 
 
@@ -63,6 +63,15 @@ async function main() {
     }
 
     const [tokenName, balance] = token;
+
+    let amount;
+    if (RND_AMOUNT)  {
+      const percent = randomBetween(MIN_AMOUNT_PERCENT, MAX_AMOUNT_PERCENT);
+      amount = balance * percent / 100;
+    } else {
+      amount = balance;
+    }
+
     const approve = await approveIfNeeded(pair.pk, tokenName, balance);
 
     if (!approve) {
