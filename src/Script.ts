@@ -1,7 +1,7 @@
 import { Data, domain, types } from "./Constants";
 import { ethers } from "ethers";
 import fs from 'fs';
-import { randomBetween, retry, sendTelegramMessage, shuffleArray, sleep } from "./Helpers";
+import { randomBetween, retry, roundTo, sendTelegramMessage, shuffleArray, sleep } from "./Helpers";
 import { MAX_AMOUNT_PERCENT, MAX_TX_SINGLE, MAX_VOLUME, MAX_VOLUME_NEEDED, MAX_WAIT_TIME, MIN_AMOUNT_PERCENT, MIN_WAIT_TIME, RND_AMOUNT, RPC_URL } from "../DEPENDENCIES";
 import { approveIfNeeded, executeOrder, findToken, getQuote } from "./Modules";
 
@@ -52,7 +52,7 @@ async function main() {
     }
 
     const token = await findToken(wallet.address);
-    console.log(token)
+    console.log('Chosen token and its balance: ', token)
 
     if (!token) {
       console.log(`No tokens found for ${wallet.address}, removing from list`);
@@ -67,12 +67,13 @@ async function main() {
     let amount;
     if (RND_AMOUNT)  {
       const percent = randomBetween(MIN_AMOUNT_PERCENT, MAX_AMOUNT_PERCENT);
-      amount = balance * percent / 100;
+      amount = roundTo(balance * percent / 100, 6);
     } else {
       amount = balance;
     }
+    console.log('Amount to swap: ', amount)
 
-    const approve = await approveIfNeeded(pair.pk, tokenName, balance);
+    const approve = await approveIfNeeded(pair.pk, tokenName, amount);
 
     if (!approve) {
       continue;
@@ -82,7 +83,7 @@ async function main() {
       wallet.address,
       pair.proxy,
       tokenName,
-      balance,
+      amount,
     );
     await sleep({ seconds: 2 });
 
@@ -108,15 +109,15 @@ async function main() {
       continue;
     }
 
-    console.log(`[ORDER] Order executed for ${balance} ${tokenName} on wallet: ${wallet.address}, tx hash: ${order}`);
+    console.log(`[ORDER] Order executed for ${amount} ${tokenName} on wallet: ${wallet.address}, tx hash: ${order}`);
 
-    await sendTelegramMessage(`🟢 ORDER EXECUTED for ${balance} ${tokenName} on wallet: ${wallet.address}, tx: https://polygonscan.com//tx/${order}`);
+    await sendTelegramMessage(`🟢 ORDER EXECUTED for ${amount} ${tokenName} on wallet: ${wallet.address}, tx: https://polygonscan.com//tx/${order}`);
 
     data[wallet.address] = {
       ...data[wallet.address],
       transactionsSingle: data[wallet.address]?.transactionsSingle ? data[wallet.address].transactionsSingle! + 1 : 1,
       fees: data[wallet.address]?.fees ? data[wallet.address].fees! + +fee.toFixed(2) : +fee.toFixed(2),
-      volume: data[wallet.address]?.volume ? data[wallet.address].volume! + +balance.toFixed(2) : +balance.toFixed(2),
+      volume: data[wallet.address]?.volume ? data[wallet.address].volume! + +amount.toFixed(2) : +amount.toFixed(2),
     };
 
     await sleep({ minutes: MIN_WAIT_TIME }, { minutes: MAX_WAIT_TIME });

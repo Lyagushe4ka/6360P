@@ -15,7 +15,7 @@ export const MAX_VOLUME_NEEDED = false; // true if you want to use get MAX_VOLUM
 
 export const MAX_VOLUME = 10_000;
 
-export const MAX_TX_SINGLE = 0;
+export const MAX_TX_SINGLE = 20;
 
 export const RND_AMOUNT = false; // true if you want to use random amount
 
