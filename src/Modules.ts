@@ -54,10 +54,14 @@ export async function getQuote(address: string, proxy: string, tokenFromName: st
   // const httpProxy = new HttpsProxyAgent(`https://${proxy}`);
   const tokenToName = tokenFromName === 'USDC' ? 'DAI' : 'USDC';
 
+  const tokenFrom = tokens[tokenFromName].address;
+  const tokenTo = tokens[tokenToName].address;
+  const amountInWei = ethers.utils.parseUnits(amount.toString(), tokens[tokenFromName].decimals);
+
   let quote: any;
   try {
-  quote = await retry(() => axios.get(
-    `https://api.bebop.xyz/polygon/v1/quote?buy_tokens=${tokenToName}&sell_tokens=${tokenFromName}&sell_amounts=${roundTo(amount, 2)}&taker_address=${address}`,
+  quote = await retry(() => axios.post(
+    `https://api.bebop.xyz/polygon/v2/quote?buy_tokens=${tokenTo}&sell_tokens=${tokenFrom}&sell_amounts=${amountInWei}&taker_address=${address}`,
     {
       httpAgent: socksProxy,
       httpsAgent: socksProxy,
@@ -83,7 +87,7 @@ export async function executeOrder(signaute: string, quoteId: string, proxy: str
   let order: any;
   try {
     order = await retry(() => axios.post(
-      `https://api.bebop.xyz/polygon/v1/order`,
+      `https://api.bebop.xyz/polygon/v2/order`,
       {
         signature: signaute,
         quote_id: quoteId,

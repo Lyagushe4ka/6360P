@@ -19,50 +19,24 @@ export const tokens: Record<string, TokenInfo> = {
 };
 
 export const domain = {
-  name: 'BebopAggregationContract',
+  name: 'BebopSettlement',
   version: '1',
   chainId: 137,
-  verifyingContract: "0xbeb09beb09e95e6febf0d6eeb1d0d46d1013cc3c"
+  verifyingContract: "0xBeB09000fa59627dc02Bb55448AC1893EAa501A5"
 };
 
 export const types = {
-  "AggregateOrder": [
-    {
-      "name": "expiry",
-      "type": "uint256"
-    },
-    {
-      "name": "taker_address",
-      "type": "address"
-    },
-    {
-      "name": "maker_addresses",
-      "type": "address[]"
-    },
-    {
-      "name": "maker_nonces",
-      "type": "uint256[]"
-    },
-    {
-      "name": "taker_tokens",
-      "type": "address[][]"
-    },
-    {
-      "name": "maker_tokens",
-      "type": "address[][]"
-    },
-    {
-      "name": "taker_amounts",
-      "type": "uint256[][]"
-    },
-    {
-      "name": "maker_amounts",
-      "type": "uint256[][]"
-    },
-    {
-      "name": "receiver",
-      "type": "address"
-    }
+  Aggregate: [
+    {name: "expiry", type: "uint256"},
+    {name: "taker_address", type: "address"},
+    {name: "maker_addresses", type: "address[]"},
+    {name: "maker_nonces", type: "uint256[]"},
+    {name: "taker_tokens", type: "address[][]"},
+    {name: "maker_tokens", type: "address[][]"},
+    {name: "taker_amounts", type: "uint256[][]"},
+    {name: "maker_amounts", type: "uint256[][]"},
+    {name: "receiver", type: "address"},
+    {name: "commands", type: "bytes"}
   ]
 };
 
