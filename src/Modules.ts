@@ -60,7 +60,7 @@ export async function getQuote(address: string, proxy: string, tokenFromName: st
 
   let quote: any;
   try {
-  quote = await retry(() => axios.post(
+  quote = await retry(() => axios.get(
     `https://api.bebop.xyz/polygon/v2/quote?buy_tokens=${tokenTo}&sell_tokens=${tokenFrom}&sell_amounts=${amountInWei}&taker_address=${address}`,
     {
       httpAgent: socksProxy,
